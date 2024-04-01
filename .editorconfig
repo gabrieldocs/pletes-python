@@ -1,0 +1,31 @@
+# EditorConfig helps developers define and maintain consistent
+# coding styles between different editors and IDEs
+# For more information about the properties used here, see:
+# https://editorconfig.org
+
+# Top-most EditorConfig file
+root = true
+
+# Python files
+[*.py]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# JavaScript and TypeScript files
+[*.js]
+[*.jsx]
+[*.ts]
+[*.tsx]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# Ignore node_modules directory
+[**/node_modules/**]
