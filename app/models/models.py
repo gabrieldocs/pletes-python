@@ -27,13 +27,13 @@ class GithubProfile(Base):
     github_company = Column(String)
     github_url = Column(String)
     github_html_url = Column(String)
-    
+
     posts = relationship("Post", back_populates="github_profile")
-    repositories = relationship("Repositories", back_populates="github_profile")
+    repositories = relationship("GithubRepositorie", back_populates="github_profile")
 
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now)
-    
+
 class Post(Base):
     __tablename__ = 'posts'
 
@@ -46,7 +46,7 @@ class Post(Base):
 
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
-        
+
 
 class GithubRepositorie(Base):
     __tablename__ = 'repositories'
@@ -61,4 +61,3 @@ class GithubRepositorie(Base):
 
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
-        

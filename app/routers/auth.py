@@ -3,8 +3,9 @@ from typing import Annotated, Optional
 
 import requests
 from dotenv import load_dotenv
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from fastapi.responses import RedirectResponse
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 from ..database.config import SessionLocal
@@ -27,7 +28,7 @@ def get_db():
         db.close()
 
 db_dependency = Annotated[Session, Depends(get_db)]
-
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 @router.get("/login")
 async def login():
@@ -52,11 +53,11 @@ async def oauth_callback( db: db_dependency, code: Optional[str] = Query(None)):
         },
         headers={"Accept": "application/json"}
     )
-    
+
     access_token = response.json().get("access_token")
     frontend_redirect_url = f"http://localhost:5173/oauth/callback?access_token={access_token}"
     print(response.json())
-    
+
     # Fetch user information from GitHub
     user_info = get_github_user_info(access_token)
     # Add user information to the database
@@ -73,20 +74,22 @@ async def oauth_callback( db: db_dependency, code: Optional[str] = Query(None)):
     existing_profile = db.query(GithubProfile).filter(GithubProfile.github_login == user_info.get("login")).first()
 
     if existing_profile:
-        return {
-            "githubUser" : existing_profile,
-            "accessToken" : access_token
-        }
+        # return {
+        #     "githubUser" : existing_profile,
+        #     "accessToken" : access_token
+        # }
+        return RedirectResponse(url=frontend_redirect_url)
+
 
     github_user = db.add(github_profile)
     db.commit()
     # return get_github_user_info(response.json().get("access_token"))
-    return {
-        "githubUser" : github_user,
-        "accessToken" : access_token
-    }
+    # return {
+    #     "githubUser" : github_user,
+    #     "accessToken" : access_token
+    # }
 
-    # return RedirectResponse(url=frontend_redirect_url)
+    return RedirectResponse(url=frontend_redirect_url)
     # returns the token
     # access_token = response.json().get("access_token")
 
@@ -94,9 +97,10 @@ async def oauth_callback( db: db_dependency, code: Optional[str] = Query(None)):
     # Store the access token securely and associate it with the user
     # return {"access_token": access_token}
 
+
 @router.get("/user")
-def get_github_user_info(access_token):
-    headers = {"Authorization": f"Bearer {access_token}"}
+def get_github_user_info(token: Annotated[str, Depends(oauth2_scheme)]):
+    headers = {"Authorization": f"Bearer {token}"}
     response = requests.get("https://api.github.com/user", headers=headers)
     if response.status_code == 200:
         user_info = response.json()

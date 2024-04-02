@@ -34,7 +34,7 @@ export default function Dashboard(): React.ReactNode {
     try {
       // Open popup window for authentication
       const popup = window.open(
-        "http://localhost:8000/login",
+        "http://localhost:8000/auth/login",
         "GitHub Authentication",
         "width=600,height=400"
       );
@@ -97,6 +97,30 @@ export default function Dashboard(): React.ReactNode {
     }
   };
 
+  const [user, setUser] = useState<any>(null);
+  React.useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      // Handle case where access token is not available
+      return;
+    }
+
+    axios
+      .get("http://localhost:8000/auth/user", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+      .then((res) => {
+        setUser(res.data);
+      })
+      .catch((error) => {
+        // Handle errors
+        console.error("Error fetching user data:", error);
+        // Optionally, you can set an error state or display a message to the user
+      });
+  }, [localStorage.getItem("accessToken")]); // Include accessToken in the dependency array
+
   return (
     <Fragment>
       <Container maxWidth={"xl"}>
@@ -112,6 +136,9 @@ export default function Dashboard(): React.ReactNode {
               flexDirection: "column",
             }}
           >
+            <Box>
+              <pre>{JSON.stringify(user, null, 4)}</pre>
+            </Box>
             <Box
               sx={{
                 display: isAuthenticated ? "none" : "",
